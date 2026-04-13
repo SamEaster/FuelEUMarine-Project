@@ -1,0 +1,61 @@
+{
+  "name": "fueleumaritime",
+  "version": "1.0.0",
+  "description": "FuelEU Maritime Compliance Platform",
+  "main": "dist/infrastructure/server/index.js",
+  "scripts": {
+    "dev": "tsx watch src/infrastructure/server/index.ts",
+    "build": "tsc",
+    "start": "node dist/infrastructure/server/index.js",
+    "lint": "eslint src/ --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:studio": "prisma studio",
+    "test": "vitest run"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SamEaster/FuelEUMarine-Project.git"
+  },
+  "keywords": [
+    "fueleu",
+    "maritime",
+    "compliance",
+    "ghg"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/SamEaster/FuelEUMarine-Project/issues"
+  },
+  "homepage": "https://github.com/SamEaster/FuelEUMarine-Project#readme",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.1",
+    "@typescript-eslint/parser": "^8.58.1",
+    "eslint": "^10.2.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.2",
+    "prisma": "^7.7.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
+  }
+}

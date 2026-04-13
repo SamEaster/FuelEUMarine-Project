@@ -2,7 +2,7 @@
 
 A full-stack compliance management system tracking shipping routes and automating the greedy resolution of greenhouse gas (GHG) compliance pools.
 
-## 🏗 Architecture Overview
+## Architecture Overview
 
 This project heavily enforces **Hexagonal Architecture (Ports & Adapters)** on both the backend and frontend.
 
@@ -19,32 +19,15 @@ This project heavily enforces **Hexagonal Architecture (Ports & Adapters)** on b
 
 ---
 
-## 🚀 Setup & Installation
+## Setup & Installation
 
 ### Prerequisite
 - Node.js (v20+)
 - PostgreSQL Running locally
 
-### 1. Start the Backend
-```bash
-cd backend
-npm install
-npm run prisma:migrate # Apply DB migrations
-npm run dev
-```
-> The API will bind natively to http://localhost:3000
-
-### 2. Start the Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-> The Vite React server will bind to http://localhost:5173
-
 ---
 
-## 📡 API Reference Examples
+## API Reference Examples
 
 ### `GET /api/routes/comparison`
 Computes the exact FuelEU baseline intensity percentage difference safely.

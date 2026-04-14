@@ -13,6 +13,8 @@ datasource db {
 model Route {
   id              String  @id @default(uuid())
   routeId         String  @map("route_id")
+  vesselType      String  @map("vessel_type")
+  fuelType        String  @map("fuel_type")
   year            Int
   ghgIntensity    Float   @map("ghg_intensity")
   fuelConsumption Float   @map("fuel_consumption")
@@ -29,6 +31,7 @@ model ShipCompliance {
   year     Int
   cbGco2eq Float  @map("cb_gco2eq")
 
+  @@unique([shipId, year])
   @@map("ship_compliance")
 }
 

@@ -8,6 +8,8 @@ export interface ShipComplianceRepository {
   findAll(): Promise<ShipCompliance[]>;
   findById(id: string): Promise<ShipCompliance | null>;
   findByShipId(shipId: string): Promise<ShipCompliance[]>;
+  findByShipIdAndYear(shipId: string, year: number): Promise<ShipCompliance | null>;
   findByYear(year: number): Promise<ShipCompliance[]>;
   create(compliance: Omit<ShipCompliance, 'id'>): Promise<ShipCompliance>;
+  upsert(shipId: string, year: number, cbGco2eq: number): Promise<ShipCompliance>;
 }

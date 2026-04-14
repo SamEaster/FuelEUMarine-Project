@@ -11,65 +11,109 @@ const prisma = new PrismaClient({ adapter });
 async function main(): Promise<void> {
   console.info('🌱 Seeding database...');
 
-  // Clear existing data
+  // Clear all data respecting FK order
   await prisma.poolMember.deleteMany();
   await prisma.pool.deleteMany();
   await prisma.bankEntry.deleteMany();
   await prisma.shipCompliance.deleteMany();
   await prisma.route.deleteMany();
 
-  // Seed 5 routes
+  // Seed the EXACT 5 routes from the assignment KPIs dataset
   const routes = await prisma.route.createMany({
     data: [
       {
-        routeId: 'RT-001',
-        year: 2025,
-        ghgIntensity: 91.16,
-        fuelConsumption: 1250.5,
-        distance: 3200.0,
-        totalEmissions: 3945.0,
-        isBaseline: true,
+        routeId: 'R001',
+        vesselType: 'Container',
+        fuelType: 'HFO',
+        year: 2024,
+        ghgIntensity: 91.0,
+        fuelConsumption: 5000,
+        distance: 12000,
+        totalEmissions: 4500,
+        isBaseline: true, // R001 set as baseline
       },
       {
-        routeId: 'RT-002',
-        year: 2025,
-        ghgIntensity: 85.43,
-        fuelConsumption: 980.0,
-        distance: 2750.0,
-        totalEmissions: 3120.0,
+        routeId: 'R002',
+        vesselType: 'BulkCarrier',
+        fuelType: 'LNG',
+        year: 2024,
+        ghgIntensity: 88.0,
+        fuelConsumption: 4800,
+        distance: 11500,
+        totalEmissions: 4200,
         isBaseline: false,
       },
       {
-        routeId: 'RT-003',
-        year: 2025,
-        ghgIntensity: 78.92,
-        fuelConsumption: 1430.0,
-        distance: 4100.0,
-        totalEmissions: 4650.0,
+        routeId: 'R003',
+        vesselType: 'Tanker',
+        fuelType: 'MGO',
+        year: 2024,
+        ghgIntensity: 93.5,
+        fuelConsumption: 5100,
+        distance: 12500,
+        totalEmissions: 4700,
         isBaseline: false,
       },
       {
-        routeId: 'RT-004',
-        year: 2026,
-        ghgIntensity: 72.58,
-        fuelConsumption: 870.0,
-        distance: 2100.0,
-        totalEmissions: 2580.0,
-        isBaseline: true,
+        routeId: 'R004',
+        vesselType: 'RoRo',
+        fuelType: 'HFO',
+        year: 2025,
+        ghgIntensity: 89.2,
+        fuelConsumption: 4900,
+        distance: 11800,
+        totalEmissions: 4300,
+        isBaseline: false,
       },
       {
-        routeId: 'RT-005',
-        year: 2026,
-        ghgIntensity: 68.21,
-        fuelConsumption: 1100.0,
-        distance: 3600.0,
-        totalEmissions: 3210.0,
+        routeId: 'R005',
+        vesselType: 'Container',
+        fuelType: 'LNG',
+        year: 2025,
+        ghgIntensity: 90.5,
+        fuelConsumption: 4950,
+        distance: 11900,
+        totalEmissions: 4400,
         isBaseline: false,
       },
     ],
   });
 
   console.info(`✅ Seeded ${routes.count} routes`);
+
+  // Seed ship_compliance records — varied GHG intensities give a mix of surplus (+) and deficit (-)
+  // CB = (89.3368 - ghgIntensity) * (fuelConsumption * 41000)
+  
+  const baseShips = [
+    { shipId: 'SHIP-001', ghgIntensity: 91.0, fuelConsumption: 5000 }, // Deficit
+    { shipId: 'SHIP-002', ghgIntensity: 88.0, fuelConsumption: 4800 }, // Surplus
+    { shipId: 'SHIP-003', ghgIntensity: 93.5, fuelConsumption: 5100 }, // Deficit
+    { shipId: 'SHIP-004', ghgIntensity: 86.5, fuelConsumption: 4600 }, // Surplus
+    { shipId: 'SHIP-005', ghgIntensity: 87.2, fuelConsumption: 4750 }, // Surplus
+    { shipId: 'SHIP-006', ghgIntensity: 89.2, fuelConsumption: 4900 }, // Surplus
+    { shipId: 'SHIP-007', ghgIntensity: 90.5, fuelConsumption: 4950 }, // Deficit
+    { shipId: 'SHIP-008', ghgIntensity: 85.0, fuelConsumption: 5200 }, // Strong Surplus
+  ];
+
+  // We want all ships available in both 2024 and 2025
+  const shipData = [];
+  for (const year of [2024, 2025]) {
+    for (const ship of baseShips) {
+      shipData.push({ ...ship, year });
+    }
+  }
+
+  for (const ship of shipData) {
+    const energy = ship.fuelConsumption * 41000;
+    const cb = (89.3368 - ship.ghgIntensity) * energy;
+    await prisma.shipCompliance.upsert({
+      where: { shipId_year: { shipId: ship.shipId, year: ship.year } },
+      update: { cbGco2eq: cb },
+      create: { shipId: ship.shipId, year: ship.year, cbGco2eq: cb },
+    });
+  }
+
+  console.info(`✅ Seeded ${shipData.length} ship compliance records`);
   console.info('🌱 Seeding complete!');
 }
 

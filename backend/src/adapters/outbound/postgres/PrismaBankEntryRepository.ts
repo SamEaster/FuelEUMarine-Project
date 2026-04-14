@@ -20,6 +20,10 @@ export class PrismaBankEntryRepository implements BankEntryRepository {
     return this.prisma.bankEntry.findMany({ where: { shipId } });
   }
 
+  async findByShipIdAndYear(shipId: string, year: number): Promise<BankEntry[]> {
+    return this.prisma.bankEntry.findMany({ where: { shipId, year } });
+  }
+
   async findByYear(year: number): Promise<BankEntry[]> {
     return this.prisma.bankEntry.findMany({ where: { year } });
   }

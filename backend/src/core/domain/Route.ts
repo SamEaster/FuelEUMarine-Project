@@ -4,6 +4,8 @@
 export interface Route {
   readonly id: string;
   readonly routeId: string;
+  readonly vesselType: string;
+  readonly fuelType: string;
   readonly year: number;
   readonly ghgIntensity: number;
   readonly fuelConsumption: number;

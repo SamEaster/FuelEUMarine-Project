@@ -1,6 +1,8 @@
 export interface Route {
   id: string;
   routeId: string;
+  vesselType: string;
+  fuelType: string;
   year: number;
   ghgIntensity: number;
   fuelConsumption: number;
@@ -10,11 +12,19 @@ export interface Route {
 }
 
 export interface ComplianceBalanceResult {
+  shipId: string;
+  year: number;
   cb: number;
 }
 
 export interface AdjustedComplianceBalanceResult {
-  adjustedCb: number;
+  shipId: string;
+  year: number;
+  cb_before: number;
+  banked: number;
+  applied: number;
+  poolDelta: number;
+  cb_after: number;
 }
 
 export interface BankEntry {

@@ -60,6 +60,8 @@ export function useCompare() {
 
 export function useBanking() {
   const [records, setRecords] = useState<BankEntry[]>([]);
+  const [currentCb, setCurrentCb] = useState<number | null>(null);
+  const [bankingKpis, setBankingKpis] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,25 +78,52 @@ export function useBanking() {
     }
   }, []);
 
+  const fetchCurrentCb = useCallback(async (shipId: string, year: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.getComplianceBalance(shipId, year);
+      if (res.data) setCurrentCb(res.data.cb);
+    } catch (err: any) {
+      setCurrentCb(null);
+      setError(err.message || 'Failed to fetch current CB');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchBankingKpis = useCallback(async (shipId: string, year: number) => {
+    try {
+      const res = await apiClient.getAdjustedComplianceBalance(shipId, year);
+      if (res.data) setBankingKpis(res.data);
+    } catch (err: any) {
+      console.error(err);
+    }
+  }, []);
+
   const bank = async (shipId: string, year: number, complianceBalance: number) => {
     try {
       await apiClient.bankSurplus({ shipId, year, complianceBalance });
-      await fetchRecords();
+      await fetchRecords(shipId);
+      await fetchBankingKpis(shipId, year);
     } catch (err: any) {
       setError(err.message || 'Failed to bank amount');
+      throw err;
     }
   };
 
   const apply = async (shipId: string, year: number, amountToApply: number) => {
     try {
       await apiClient.applyBanked({ shipId, year, amountToApply });
-      await fetchRecords();
+      await fetchRecords(shipId);
+      await fetchBankingKpis(shipId, year);
     } catch (err: any) {
       setError(err.message || 'Failed to apply amount');
+      throw err;
     }
   };
 
-  return { records, loading, error, fetchRecords, bank, apply };
+  return { records, currentCb, bankingKpis, loading, error, fetchRecords, fetchCurrentCb, fetchBankingKpis, bank, apply, setError };
 }
 
 export function usePooling() {

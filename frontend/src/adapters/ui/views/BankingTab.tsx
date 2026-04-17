@@ -39,8 +39,12 @@ export function BankingTab() {
   };
 
   const handleBank = async () => {
-    if (!shipId || !amount) return;
+    if (!shipId || !amount || !selectedShipEntry) return;
     setSuccessMsg(null);
+    if (amount > selectedShipEntry.adjustedCb) {
+      setError(`Cannot bank ${amount}. Only ${selectedShipEntry.adjustedCb.toFixed(0)} surplus available to bank.`);
+      return;
+    }
     try {
       await bank(shipId, year, amount);
       setSuccessMsg(`Successfully banked ${amount.toLocaleString()} gCO₂e for ${shipId}.`);
@@ -68,10 +72,10 @@ export function BankingTab() {
     }
   };
 
-  const isBankDisabled  = !shipId || !amount || loading || currentCb === null || currentCb <= 0;
-  const isApplyDisabled = !shipId || !amount || loading || availableBanked <= 0;
-
   const selectedShipEntry = ships.find(s => s.shipId === shipId);
+
+  const isBankDisabled  = !shipId || !amount || loading || !selectedShipEntry || selectedShipEntry.adjustedCb <= 0;
+  const isApplyDisabled = !shipId || !amount || loading || availableBanked <= 0;
 
   return (
     <div className="space-y-6">
@@ -184,7 +188,7 @@ export function BankingTab() {
                 <button
                   onClick={handleBank}
                   disabled={isBankDisabled}
-                  title={currentCb !== null && currentCb <= 0 ? 'Cannot bank — CB ≤ 0' : ''}
+                  title={selectedShipEntry && selectedShipEntry.adjustedCb <= 0 ? 'Cannot bank — No surplus available' : ''}
                   className="flex-1 py-2 bg-emerald-600 text-white rounded-md font-medium hover:bg-emerald-700 disabled:opacity-40 disabled:bg-slate-300 transition-colors"
                 >
                   {loading && !error && !successMsg ? 'Processing…' : 'Bank Surplus'}

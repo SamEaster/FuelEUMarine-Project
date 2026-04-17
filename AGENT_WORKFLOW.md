@@ -2,7 +2,7 @@
 
 This document tracks the interactions, AI agents utilized, and iteration processes involved in building the FuelEU Maritime platform.
 
-## 🤖 Agents Utilized
+## Agents Utilized
 
 1. **Claude (Earlier Phases)**
    - **Role:** Initial architecture scaffolding, Domain implementation, and Core Business Logic calculation.
@@ -18,11 +18,11 @@ This document tracks the interactions, AI agents utilized, and iteration process
    - **Role:** Headless browser automation.
    - **Execution:** Hit `http://localhost:5173` locally to dynamically test Recharts components and API cross-origin resolution. 
 
-## 🔄 Prompts, Outputs, and Corrections
+## Prompts, Outputs, and Corrections
 
 ### Phase 1: API Construction
 **Prompt:**
-> Implement HTTP API layer using Express. Use controllers as adapters calling use-cases. Endpoints: /routes, /compliance, /banking, /pools.
+Implement HTTP API layer using Express. Use controllers as adapters calling use-cases. Endpoints: /routes, /compliance, /banking, /pools.
 
 **Action & Output:** 
 Generated pure `RequestHandler` methods wiring into Hexagonal Repositories.
@@ -32,7 +32,7 @@ TypeScript `Request` and `Response` imports threw linting errors as they were un
 
 ### Phase 2: Frontend Scaffolding
 **Prompt:**
-> Create a React + TypeScript + TailwindCSS frontend... Follow structure: src/core/, adapters/ui/, adapters/infrastructure/
+Create a React + TypeScript + TailwindCSS frontend... Follow structure: src/core/, adapters/ui/, adapters/infrastructure/
 
 **Action & Output:** 
 Ran Vite CLI generation natively using Bash commands. 

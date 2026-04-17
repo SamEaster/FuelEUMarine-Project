@@ -35,7 +35,7 @@ export function createApp(): Application {
   // Mount routes
   app.use('/api/health', createHealthRouter());
   app.use('/api/routes', createRouteRouter(routeRepository));
-  app.use('/api/compliance', createComplianceRouter(shipComplianceRepository, poolRepository, bankEntryRepository, routeRepository));
+  app.use('/api/compliance', createComplianceRouter(shipComplianceRepository, poolRepository, bankEntryRepository));
   app.use('/api/banking', createBankingRouter(bankEntryRepository, shipComplianceRepository));
   app.use('/api/pools', createPoolRouter(poolRepository, shipComplianceRepository));
 

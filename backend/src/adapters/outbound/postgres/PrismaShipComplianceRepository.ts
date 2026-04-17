@@ -38,11 +38,12 @@ export class PrismaShipComplianceRepository implements ShipComplianceRepository 
    * Upsert: update if record exists for (shipId, year), create otherwise.
    * Safe because ship_compliance has a unique constraint on (ship_id, year).
    */
-  async upsert(shipId: string, year: number, cbGco2eq: number): Promise<ShipCompliance> {
+  async upsert(shipId: string, year: number, ghgIntensity: number, fuelConsumption: number, cbGco2eq: number): Promise<ShipCompliance> {
     return this.prisma.shipCompliance.upsert({
       where: { shipId_year: { shipId, year } },
-      update: { cbGco2eq },
-      create: { shipId, year, cbGco2eq },
+      update: { ghgIntensity, fuelConsumption, cbGco2eq },
+      create: { shipId, year, ghgIntensity, fuelConsumption, cbGco2eq },
     });
   }
 }
+

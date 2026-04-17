@@ -81,18 +81,16 @@ async function main(): Promise<void> {
 
   console.info(`✅ Seeded ${routes.count} routes`);
 
-  // Seed ship_compliance records — varied GHG intensities give a mix of surplus (+) and deficit (-)
+
+  // Seed ship_compliance records — exactly mapping to the 5 routes.
   // CB = (89.3368 - ghgIntensity) * (fuelConsumption * 41000)
   
   const baseShips = [
-    { shipId: 'SHIP-001', ghgIntensity: 91.0, fuelConsumption: 5000 }, // Deficit
-    { shipId: 'SHIP-002', ghgIntensity: 88.0, fuelConsumption: 4800 }, // Surplus
-    { shipId: 'SHIP-003', ghgIntensity: 93.5, fuelConsumption: 5100 }, // Deficit
-    { shipId: 'SHIP-004', ghgIntensity: 86.5, fuelConsumption: 4600 }, // Surplus
-    { shipId: 'SHIP-005', ghgIntensity: 87.2, fuelConsumption: 4750 }, // Surplus
-    { shipId: 'SHIP-006', ghgIntensity: 89.2, fuelConsumption: 4900 }, // Surplus
-    { shipId: 'SHIP-007', ghgIntensity: 90.5, fuelConsumption: 4950 }, // Deficit
-    { shipId: 'SHIP-008', ghgIntensity: 85.0, fuelConsumption: 5200 }, // Strong Surplus
+    { shipId: 'SHIP-R001', ghgIntensity: 91.0, fuelConsumption: 5000 },
+    { shipId: 'SHIP-R002', ghgIntensity: 88.0, fuelConsumption: 4800 },
+    { shipId: 'SHIP-R003', ghgIntensity: 93.5, fuelConsumption: 5100 },
+    { shipId: 'SHIP-R004', ghgIntensity: 89.2, fuelConsumption: 4900 },
+    { shipId: 'SHIP-R005', ghgIntensity: 90.5, fuelConsumption: 4950 },
   ];
 
   // We want all ships available in both 2024 and 2025
@@ -108,8 +106,18 @@ async function main(): Promise<void> {
     const cb = (89.3368 - ship.ghgIntensity) * energy;
     await prisma.shipCompliance.upsert({
       where: { shipId_year: { shipId: ship.shipId, year: ship.year } },
-      update: { cbGco2eq: cb },
-      create: { shipId: ship.shipId, year: ship.year, cbGco2eq: cb },
+      update: { 
+        ghgIntensity: ship.ghgIntensity, 
+        fuelConsumption: ship.fuelConsumption, 
+        cbGco2eq: cb 
+      },
+      create: { 
+        shipId: ship.shipId, 
+        year: ship.year, 
+        ghgIntensity: ship.ghgIntensity, 
+        fuelConsumption: ship.fuelConsumption, 
+        cbGco2eq: cb 
+      },
     });
   }
 

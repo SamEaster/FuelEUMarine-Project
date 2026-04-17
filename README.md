@@ -64,3 +64,43 @@ Creates a pool between multiple ships dynamically averaging GHG surpluses effici
   }
 }
 ```
+Correct the Agent_workflow, readme, and reflection
+compare page ui to be improve - Columns: ghgIntensity, % difference, compliant. All routes ka result.
+
+(1) Routes Tab
+Display table of all routes fetched from /routes
+Columns: routeId, vesselType, fuelType, year, ghgIntensity (gCO₂e/MJ), fuelConsumption (t), distance (km), totalEmissions (t)
+“Set Baseline” button → calls POST /routes/:routeId/baseline
+Filters: vesselType, fuelType, year
+
+(2) Compare Tab
+Fetch baseline + comparison data from /routes/comparison
+Use target = 89.3368 gCO₂e/MJ (2 % below 91.16)
+Display:
+Table with baseline vs comparison routes
+Columns: ghgIntensity, % difference, compliant (✅ / ❌)
+Chart (bar/line) comparing ghgIntensity values
+Formula:
+percentDiff = ((comparison / baseline) − 1) × 100
+
+(3) Banking Tab
+Implements Fuel EU Article 20 – Banking.
+GET /compliance/cb?year=YYYY → shows current CB
+POST /banking/bank → banks positive CB
+POST /banking/apply → applies banked surplus to a deficit
+KPIs:
+cb_before, applied, cb_after
+Disable actions if CB ≤ 0; show errors from API
+
+(4) Pooling Tab
+Implements Fuel EU Article 21 – Pooling.
+GET /compliance/adjusted-cb?year=YYYY → fetch adjusted CB per ship
+POST /pools → create pool with members
+Rules:
+Sum(adjustedCB) ≥ 0
+Deficit ship cannot exit worse
+Surplus ship cannot exit negative
+UI:
+List members with before/after CBs
+Pool Sum indicator (red/green)
+Disable “Create Pool” if invalid

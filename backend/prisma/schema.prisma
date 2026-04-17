@@ -26,10 +26,12 @@ model Route {
 }
 
 model ShipCompliance {
-  id       String @id @default(uuid())
-  shipId   String @map("ship_id")
-  year     Int
-  cbGco2eq Float  @map("cb_gco2eq")
+  id              String @id @default(uuid())
+  shipId          String @map("ship_id")
+  year            Int
+  ghgIntensity    Float  @map("ghg_intensity")
+  fuelConsumption Float  @map("fuel_consumption")
+  cbGco2eq        Float  @map("cb_gco2eq")
 
   @@unique([shipId, year])
   @@map("ship_compliance")

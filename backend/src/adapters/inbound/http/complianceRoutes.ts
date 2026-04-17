@@ -2,14 +2,12 @@ import { Router, RequestHandler } from 'express';
 import { ShipComplianceRepository } from '../../../core/ports/ShipComplianceRepository.js';
 import { BankEntryRepository } from '../../../core/ports/BankEntryRepository.js';
 import { PoolRepository } from '../../../core/ports/PoolRepository.js';
-import { RouteRepository } from '../../../core/ports/RouteRepository.js';
 import { computeComplianceBalance } from '../../../core/application/ComputeComplianceBalance.js';
 
 export function createComplianceRouter(
   shipComplianceRepo: ShipComplianceRepository,
   poolRepo: PoolRepository,
-  bankRepo: BankEntryRepository,
-  routeRepo: RouteRepository,
+  bankRepo: BankEntryRepository
 ): Router {
   const router = Router();
 
@@ -29,46 +27,31 @@ export function createComplianceRouter(
         return;
       }
 
-      // Step 1: Try to find a route whose routeId matches the shipId
-      const routesByYear = await routeRepo.findByYear(year);
-      const matchedRoute = routesByYear.find(r => r.routeId === shipId);
+      const existing = await shipComplianceRepo.findByShipIdAndYear(shipId, year);
 
-      let cb: number;
-
-      if (matchedRoute) {
-        // Step 2a: compute CB from matched route
-        const result = computeComplianceBalance({
-          ghgIntensity: matchedRoute.ghgIntensity,
-          fuelConsumption: matchedRoute.fuelConsumption,
-        });
-        cb = result.complianceBalance;
-        await shipComplianceRepo.upsert(shipId, year, cb);
-      } else {
-        // Step 2b: check for existing snapshot
-        const existing = await shipComplianceRepo.findByShipIdAndYear(shipId, year);
-
-        if (existing) {
-          cb = existing.cbGco2eq;
-        } else {
-          // Step 2c: no route, no snapshot — compute from year average energy
-          // Use average fuelConsumption of all routes in that year as proxy
-          if (routesByYear.length === 0) {
-            res.status(404).json({ success: false, error: 'No route data found for this year to compute CB' });
-            return;
-          }
-          const avgFuelConsumption = routesByYear.reduce((s, r) => s + r.fuelConsumption, 0) / routesByYear.length;
-          const avgGhgIntensity = routesByYear.reduce((s, r) => s + r.ghgIntensity, 0) / routesByYear.length;
-          const result = computeComplianceBalance({
-            ghgIntensity: avgGhgIntensity,
-            fuelConsumption: avgFuelConsumption,
-          });
-          cb = result.complianceBalance;
-          // Store snapshot for future lookups
-          await shipComplianceRepo.upsert(shipId, year, cb);
-        }
+      if (!existing) {
+        res.status(404).json({ success: false, error: 'Ship compliance not found for given year' });
+        return;
       }
 
-      res.json({ success: true, data: { shipId, year, cb } });
+      // Compute CB precisely from the ship's stored factors
+      const result = computeComplianceBalance({
+        ghgIntensity: existing.ghgIntensity,
+        fuelConsumption: existing.fuelConsumption,
+      });
+
+      // (Optional) ensure DB is in sync if formula changed slightly
+      if (Math.abs(existing.cbGco2eq - result.complianceBalance) > 0.01) {
+        await shipComplianceRepo.upsert(
+          shipId,
+          year,
+          existing.ghgIntensity,
+          existing.fuelConsumption,
+          result.complianceBalance
+        );
+      }
+
+      res.json({ success: true, data: { shipId, year, cb: result.complianceBalance } });
     } catch (error) {
       res.status(500).json({ success: false, error: 'Failed to compute compliance balance' });
     }
@@ -116,8 +99,8 @@ export function createComplianceRouter(
         }
       }
 
-      // Step 4: final adjusted CB (applied is already negative, so we add it)
-      const adjustedCB = baseCB + banked + applied + poolDelta;
+      // Step 4: final adjusted CB (banked reduces available CB, applied restores it. applied is already negative, so subtracting it makes it positive in effect.)
+      const adjustedCB = baseCB - banked - applied + poolDelta;
 
       res.json({
         success: true,
@@ -177,10 +160,11 @@ export function createComplianceRouter(
       const result = compliances.map(c => {
         const poolDelta = poolDeltaMap.get(c.shipId) ?? 0;
         const bankNet = bankNetMap.get(c.shipId) ?? 0;
+        // bankNet is positive for banked, negative for applied. It should be subtracted to find strictly available balance!
         return {
           shipId: c.shipId,
           cbBefore: c.cbGco2eq,
-          adjustedCb: c.cbGco2eq + bankNet + poolDelta,
+          adjustedCb: c.cbGco2eq - bankNet + poolDelta,
           inPool: poolDeltaMap.has(c.shipId),
         };
       });

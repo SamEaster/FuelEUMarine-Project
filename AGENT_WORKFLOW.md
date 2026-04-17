@@ -4,51 +4,157 @@ This document tracks the interactions, AI agents utilized, and iteration process
 
 ## Agents Utilized
 
-1. **Claude (Earlier Phases)**
-   - **Role:** Initial architecture scaffolding, Domain implementation, and Core Business Logic calculation.
-   - **Output:** Implemented `ComputeComplianceBalance.ts`, `CreatePool.ts`, and core Hexagonal ports without Express dependencies.
-
-2. **Antigravity (Google DeepMind) - Current Phase**
-   - **Role:** Full-stack construction: Built the Express API Adapters, wired up Prisma PostgreSQL, and initialized & built the Vite React Frontend.
-   - **Tools Used:** 
-     - Bash execution for type-checking and testing execution.
-     - Filesystem read/write/replace to scaffold Express endpoints and React UI code.
-
-3. **Browser Subagent (Antigravity Environment)**
-   - **Role:** Headless browser automation.
-   - **Execution:** Hit `http://localhost:5173` locally to dynamically test Recharts components and API cross-origin resolution. 
-
+   AntiGravity
 ## Prompts, Outputs, and Corrections
 
-### Phase 1: API Construction
-**Prompt:**
-Implement HTTP API layer using Express. Use controllers as adapters calling use-cases. Endpoints: /routes, /compliance, /banking, /pools.
+# For backend
+Create a Node.js + TypeScript backend project using Express.
 
-**Action & Output:** 
-Generated pure `RequestHandler` methods wiring into Hexagonal Repositories.
-**Correction Encountered:** 
-TypeScript `Request` and `Response` imports threw linting errors as they were unutilized explicitly when typing `RequestHandler = async (req, res) => ...`. 
-**Resolution:** Replaced file content dynamically to drop unused imports to pass the strict `npm run build` test.
+Follow strict hexagonal architecture:
 
-### Phase 2: Frontend Scaffolding
-**Prompt:**
-Create a React + TypeScript + TailwindCSS frontend... Follow structure: src/core/, adapters/ui/, adapters/infrastructure/
+src/
+  core/
+    domain/
+    application/
+    ports/
+  adapters/
+    inbound/http/
+    outbound/postgres/
+  infrastructure/
+    db/
+    server/
+  shared/
 
-**Action & Output:** 
-Ran Vite CLI generation natively using Bash commands. 
-**Correction Encountered:** 
-The standard `npm create vite@latest` CLI prompts users interactively `(Install with npm and start now? y/n)`. The agent's prompt was paused indefinitely. 
-**Resolution:** Switched to the headless automated flag `create-vite . --template react-ts --no-interactive` to bypass terminal prompts sequentially.
+Requirements:
+- Enable TypeScript strict mode
+- Setup ESLint + Prettier
+- Setup PostgreSQL connection (use Prisma ORM)
+- Create Prisma schema with tables:
 
-### Phase 3: Frontend Typing
-**Action & Output:** 
-Generated `FetchApiClient.ts` utilizing `ApiClientPort`. 
-**Correction Encountered:** 
-Vite's default TSConfig uses `verbatimModuleSyntax: true`. The naive `import { ApiClientPort }` threw a build error: `must be imported using a type-only import`.
-**Resolution:** Used `multi_replace_file_content` to migrate all Domain type imports to explicit `import type { ... }` syntax.
+routes (id, route_id, year, ghg_intensity, fuel_consumption, distance, total_emissions, is_baseline)
+ship_compliance (id, ship_id, year, cb_gco2eq)
+bank_entries (id, ship_id, year, amount_gco2eq)
+pools (id, year, created_at)
+pool_members (pool_id, ship_id, cb_before, cb_after)
 
-### Phase 4: API Proxy and End-to-End Testing
-**Action:** Used Browser Subagent to visit the React UI.
-**Correction Encountered:** 
-The UI crashed throwing `AggregateError [ECONNREFUSED]` 502 proxy errors. The subagent noted no backend data populated.
-**Resolution:** The backend was down locally. Initiated background terminal processes launching `npm run dev` in `/backend`, resolving proxy resolution to `localhost:3000` perfectly.
+- Add seed data for 5 routes
+
+- Setup Express server in infrastructure layer only
+
+- Do NOT add business logic yet
+
+# Core Logic:
+Implement core business logic in a hexagonal architecture.
+
+Create:
+
+Entities:
+- Route
+- ComplianceBalance
+- BankEntry
+- Pool
+
+Use-cases:
+1. ComputeComplianceBalance
+   - Input: ghgIntensity, fuelConsumption
+   - Formula:
+     energy = fuelConsumption * 41000
+     CB = (89.3368 - ghgIntensity) * energy
+
+2. CompareRoutes
+   - percentDiff = ((comparison / baseline) - 1) * 100
+   - compliant = ghgIntensity <= 89.3368
+
+3. BankSurplus
+   - Only allow CB > 0
+
+4. ApplyBanked
+   - Cannot exceed available banked amount
+
+5. CreatePool
+   - Sum CB ≥ 0
+   - Deficit ships must not worsen
+   - Surplus ships must not go negative
+   - Use greedy algorithm
+
+IMPORTANT:
+- No DB or Express usage
+- Pure TypeScript logic
+- Use interfaces for repository ports
+
+# APIs:
+Implement HTTP API layer using Express.
+
+Use controllers as adapters calling use-cases.
+
+Endpoints:
+
+/routes
+- GET /routes
+- POST /routes/:id/baseline
+- GET /routes/comparison
+
+/compliance
+- GET /compliance/cb?shipId&year
+- GET /compliance/adjusted-cb?shipId&year
+
+/banking
+- GET /banking/records
+- POST /banking/bank
+- POST /banking/apply
+
+/pools
+- POST /pools
+
+Rules:
+- Controllers must NOT contain business logic
+- Use dependency injection for use-cases
+- Return proper JSON responses
+
+# Frontend:
+Create a React + TypeScript + TailwindCSS frontend.
+
+Follow structure:
+src/
+  core/
+  adapters/ui/
+  adapters/infrastructure/
+
+Create 4 tabs:
+
+1. Routes
+- Table with filters
+- Button to set baseline
+
+2. Compare
+- Show baseline vs others
+- percentDiff and compliant
+- Add simple chart (Recharts)
+
+3. Banking
+- Show CB
+- Bank + Apply buttons
+
+4. Pooling
+- Show members
+- Validate rules
+- Create pool
+
+Rules:
+- Use hooks for API calls
+- Keep UI simple and clean
+
+
+## Validation / Corrections
+
+For validation I focused more on the test case and calculating the values myself also to ensure the logic is correct. Tried to focus on the edge case, such as in banking if the surplus value is equal to left cb value.
+
+
+## Observations
+- It is able to give the structure of the code. And code fast.
+- In case of core logic it failed so had to correct it by providing the correct logic and detailing the logic.
+- I used the better practicies such as skills, rules and using the required tool for the task.
+
+
+## Best Practices Followed
+Using skill.md files to give instruction of the agents what the components is for. Using rules.md file to give the rules. And breaking the task.

@@ -46,7 +46,11 @@ Ensure postgres is running locally on localhost:5432.
 - npm run test
 
 ## Images
-![image]([https://github.com...](https://github.com/SamEaster/FuelEUMarine-Project/blob/main/images/img1))
-![image]([https://github.com...](https://github.com/SamEaster/FuelEUMarine-Project/blob/main/images/img2))
-![image]([https://github.com...](https://github.com/SamEaster/FuelEUMarine-Project/blob/main/images/img3))
-![image]([https://github.com...](https://github.com/SamEaster/FuelEUMarine-Project/blob/main/images/img4))
+![Image 3](https://github.com/SamEaster/FuelEUMarine-Project/blob/main/images/img3)
+Routes Page
+![Image 4](https://github.com/SamEaster/FuelEUMarine-Project/blob/main/images/img4)/
+Comparision Page
+![Image2](https://github.com/SamEaster/FuelEUMarine-Project/blob/main/images/img2)/
+Banking Page
+![Image1](https://github.com/SamEaster/FuelEUMarine-Project/blob/main/images/img1)
+Pooling Page

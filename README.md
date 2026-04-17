@@ -44,3 +44,9 @@ Ensure postgres is running locally on localhost:5432.
 ## How to execute tests
 # backend
 - npm run test
+
+## Images
+![image]([https://github.com...](https://github.com/SamEaster/FuelEUMarine-Project/blob/main/images/img1))
+![image]([https://github.com...](https://github.com/SamEaster/FuelEUMarine-Project/blob/main/images/img2))
+![image]([https://github.com...](https://github.com/SamEaster/FuelEUMarine-Project/blob/main/images/img3))
+![image]([https://github.com...](https://github.com/SamEaster/FuelEUMarine-Project/blob/main/images/img4))
